@@ -1,12 +1,18 @@
+use std::env;
 use axum::{routing::post, Router, Json};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/echo", post(echo));
+    let port_key = "FUNCTIONS_CUSTOMHANDLER_PORT";
+    let port: u16 = match env::var(port_key) {
+        Ok(val) => val.parse().expect("Custom Handler port is not a number!"),
+        Err(_) => 3000,
+    };
+    let app = Router::new().route("/api/echo", post(echo));
 
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    axum::Server::bind(&format!("127.0.0.1:{port}").parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
