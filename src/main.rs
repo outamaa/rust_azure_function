@@ -10,7 +10,7 @@ async fn main() {
         Ok(val) => val.parse().expect("Custom Handler port is not a number!"),
         Err(_) => 3000,
     };
-    let app = Router::new().route("/api/echo", post(echo));
+    let app = Router::new().route("/echo", post(echo));
 
     axum::Server::bind(&format!("127.0.0.1:{port}").parse().unwrap())
         .serve(app.into_make_service())
@@ -18,16 +18,73 @@ async fn main() {
         .unwrap();
 }
 
-async fn echo(Json(payload): Json<EchoRequest>) -> (StatusCode, Json<EchoResponse>) {
-    let echo = EchoResponse {
-        resp: payload.req
+async fn echo(Json(request): Json<FunctionRequest>) -> (StatusCode, Json<FunctionResponse>) {
+    let inner_echo_request: InnerRequest = serde_json::from_str(&request.data.req.body).unwrap();
+    let inner_echo_response = serde_json::to_string(&EchoResponse {
+        resp: inner_echo_request.req,
+    }).unwrap();
+
+    let response = FunctionResponse {
+        outputs: Outputs {
+            res: Res {
+                body: inner_echo_response
+            }
+        },
+        logs: vec![]
     };
 
-    (StatusCode::OK, Json(echo))
+    (StatusCode::OK, Json(response))
+}
+
+//
+// Function request deserialization
+//
+
+#[derive(Deserialize)]
+struct FunctionRequest {
+    #[serde(rename = "Data")]
+    pub data: Data,
 }
 
 #[derive(Deserialize)]
-struct EchoRequest {
+struct Data {
+    pub req: Req,
+}
+
+#[derive(Deserialize)]
+struct Req {
+    #[serde(rename = "Body")]
+    pub body: String,
+}
+
+//
+// Function response deserialization
+//
+
+#[derive(Serialize)]
+struct FunctionResponse {
+    #[serde(rename = "Outputs")]
+    pub outputs: Outputs,
+    #[serde(rename = "Logs")]
+    pub logs: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct Outputs {
+    pub res: Res,
+}
+
+#[derive(Serialize)]
+struct Res {
+    pub body: String,
+}
+
+//
+// Inner HTTP request and response
+//
+
+#[derive(Deserialize)]
+struct InnerRequest {
     req: String,
 }
 

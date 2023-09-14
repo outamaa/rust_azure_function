@@ -17,7 +17,6 @@
       "defaultExecutablePath": "rust_azure_function",
       "workingDirectory": "",
       "arguments": []
-    },
-    "enableForwardingHttpRequest": true
+    }
   }
 }
