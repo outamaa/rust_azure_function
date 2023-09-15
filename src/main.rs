@@ -13,7 +13,7 @@ async fn main() {
     };
     let app = Router::new()
         .route("/echo", post(echo))
-        .route("/queue", post(queue));
+        .route("/timer", post(timer));
 
     axum::Server::bind(&format!("127.0.0.1:{port}").parse().unwrap())
         .serve(app.into_make_service())
@@ -21,7 +21,7 @@ async fn main() {
         .unwrap();
 }
 
-async fn queue(input: Bytes) -> (StatusCode, Json<QueueResponse>) {
+async fn timer(input: Bytes) -> (StatusCode, Json<QueueResponse>) {
     let response = QueueResponse {
         logs: vec![
             format!("Got request JSON: {}", String::from_utf8_lossy(input.as_ref()))
