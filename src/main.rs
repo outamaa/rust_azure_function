@@ -1,5 +1,6 @@
 use std::env;
 use axum::{routing::post, Router, Json};
+use axum::body::Bytes;
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
@@ -10,13 +11,31 @@ async fn main() {
         Ok(val) => val.parse().expect("Custom Handler port is not a number!"),
         Err(_) => 3000,
     };
-    let app = Router::new().route("/echo", post(echo));
+    let app = Router::new()
+        .route("/echo", post(echo))
+        .route("/queue", post(queue));
 
     axum::Server::bind(&format!("127.0.0.1:{port}").parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
 }
+
+async fn queue(input: Bytes) -> (StatusCode, Json<QueueResponse>) {
+    let response = QueueResponse {
+        logs: vec![
+            format!("Got request JSON: {}", String::from_utf8_lossy(input.as_ref()))
+        ],
+    };
+    (StatusCode::OK, Json(response))
+}
+
+#[derive(Serialize)]
+struct QueueResponse {
+    #[serde(rename = "Logs")]
+    pub logs: Vec<String>,
+}
+
 
 async fn echo(Json(request): Json<FunctionRequest>) -> (StatusCode, Json<FunctionResponse>) {
     let inner_echo_request: InnerRequest = serde_json::from_str(&request.data.req.body).unwrap();

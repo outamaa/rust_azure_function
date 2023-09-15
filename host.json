@@ -14,7 +14,7 @@
   },
   "customHandler": {
     "description": {
-      "defaultExecutablePath": "rust_azure_function",
+      "defaultExecutablePath": "target/release/rust_azure_function",
       "workingDirectory": "",
       "arguments": []
     }

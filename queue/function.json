@@ -1,0 +1,11 @@
+{
+  "bindings": [
+    {
+      "type": "timerTrigger",
+      "authLevel": "anonymous",
+      "direction": "in",
+      "name": "cron",
+      "schedule": "* * * * *"
+    }
+  ]
+}
